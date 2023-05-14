@@ -4,8 +4,8 @@ from flask_restful import Resource, Api, reqparse
 import psycopg2
 
 parser = reqparse.RequestParser()
-parser.add_argument('title')
-parser.add_argument('artist')
+parser.add_argument('username')
+parser.add_argument('password')
 
 app = Flask("login")
 api = Api(app)
@@ -21,11 +21,28 @@ while conn is None:
         time.sleep(1)
         print("Retrying DB connection")
 
+def login_exists(username, password):
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM login (WHERE username = %s AND password = %s);", (username, password))
+    return bool(cur.fetchone()[0])  # Either True or False
 
-def register():
-    pass
+def register(username, password):
+    if not login_exists(username, password):
+        cur = conn.cursor()
+        cur.execute("INSERT INTO login (username, password) VALUES (%s, %s);", (username, password))
+        conn.commit()
+        return True
+    return False
 
-def login():
-    pass
+class Register(Resource):
+    def post(self):
+        args = flask_request.args
+        return register(args['username'], args['password'])
 
+class Login(Resource):
+    def get(self):
+        args = flask_request.args
+        return login_exists(args['username'], args['password'])
 
+api.add_resource(Register, '/login/register')
+api.add_resource(Login, '/login/login')

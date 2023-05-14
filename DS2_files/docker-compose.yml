@@ -15,6 +15,57 @@ services:
       # Map the psql data from the container to a virtual volume, thus preserving the data after the container is stopped.
       - songs_data:/var/lib/postgresql/data
 
+  login_persistence:
+    image: docker.io/postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      # Map the login_persistence folder to the docker-entrypoint-initdb.d folder in the container.
+      # This will ensure that the necessary files are present in the container for initializing the database(s)
+      - ./login_persistence/:/docker-entrypoint-initdb.d
+
+  friends_persistence:
+    image: docker.io/postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./friends_persistence/:/docker-entrypoint-initdb.d
+
+  playlist_persistence:
+    image: docker.io/postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./playlist_persistence/:/docker-entrypoint-initdb.d
+
+  login:
+    build: ./login
+    ports:
+      - 5002:5000
+    depends_on:
+      - login_persistence
+
+  friends:
+    build: ./friends
+    ports:
+      - 5003:5000
+    depends_on:
+      - friends_persistence
+
+  playlist:
+    build: ./playlist
+    ports:
+      - 5004:5000
+    depends_on:
+      - playlist_persistence
+      - songs
+
   songs:
     build: ./songs
     ports:
