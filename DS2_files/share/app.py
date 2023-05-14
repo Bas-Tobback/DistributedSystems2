@@ -5,9 +5,10 @@ import psycopg2
 
 parser = reqparse.RequestParser()
 parser.add_argument('username')
+parser.add_argument('friend')
 parser.add_argument('playlist')
 
-app = Flask("playlist")
+app = Flask("share")
 api = Api(app)
 
 conn = None
@@ -28,17 +29,3 @@ def get_playlist(user, playlist):
 def make_playlist(user, playlist):
     pass
 
-def add_to_playlist(user, playlist, artist, title):
-    pass
-
-class Create(Resource):
-    def post(self):
-        pass
-
-class Add(Resource):
-    def post(self):
-        pass
-
-class GetPlaylist(Resource):
-    def get(self):
-        pass

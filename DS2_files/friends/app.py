@@ -23,6 +23,10 @@ while conn is None:
 
 def add_friend(username, friend):
     if friend not in all_friends(username):
+
+        # TODO : REST API call to check if the user exists
+        existing = flask_request.get(f"http://login:5000/login/exists?username={username}")
+
         cur = conn.cursor()
         cur.execute("INSERT INTO friends (username, friend) VALUES (%s, %s);", (username, friend))
         conn.commit()

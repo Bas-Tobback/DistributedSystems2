@@ -64,7 +64,6 @@ services:
       - 5004:5000
     depends_on:
       - playlist_persistence
-      - songs
 
   songs:
     build: ./songs

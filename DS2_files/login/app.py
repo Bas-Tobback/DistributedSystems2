@@ -21,11 +21,33 @@ while conn is None:
         time.sleep(1)
         print("Retrying DB connection")
 
-def login_exists(username, password):
+""" 
+check if the login exists, check the database for an entry with matching username and password
+:param: username : string, name of user
+:param: password : string, password of user
+:return: boolean that indicates if the username-password combination is registered
+"""
+def login(username, password):
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM login (WHERE username = %s AND password = %s);", (username, password))
+    cur.execute("SELECT COUNT(*) FROM login WHERE username = %s AND password = %s;", (username, password))
     return bool(cur.fetchone()[0])  # Either True or False
 
+"""
+check if the username is present in the registered users
+:param: username : string, name of the user 
+:return: boolean indicating if the user exists
+"""
+def login_exists(username):
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM login WHERE username = %s;", username)
+    return bool(cur.fetchone()[0])  # Either True or False
+
+""" 
+register a new user 
+:param: username : string, name of user
+:param: password : string, password of user
+:return: boolean that indicates if the username-password combination is registered
+"""
 def register(username, password):
     if not login_exists(username, password):
         cur = conn.cursor()
@@ -35,14 +57,22 @@ def register(username, password):
     return False
 
 class Register(Resource):
+    """ register a new user, this will only do this if the user does not yet exist """
     def post(self):
         args = flask_request.args
         return register(args['username'], args['password'])
 
 class Login(Resource):
+    """ check if the user exists or not """
     def get(self):
         args = flask_request.args
-        return login_exists(args['username'], args['password'])
+        return login(args['username'], args['password'])
+
+class Exists(Resource):
+    def get(self):
+        args = flask_request.args
+        return login_exists(args['username'])
 
 api.add_resource(Register, '/login/register')
 api.add_resource(Login, '/login/login')
+api.add_resource(Exists, '/login/exists')

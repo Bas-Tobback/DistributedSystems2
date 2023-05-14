@@ -64,7 +64,7 @@ def actual_login():
     # microservice returns True if correct combination, False if otherwise.
     # Also pay attention to the status code returned by the microservice.
     # ================================
-    success = None  # TODO: call
+    success = requests.get(f"http://login:5000/login/login?username={req_username}&password={req_password}").json()
 
     save_to_session('success', success)
     if success:
@@ -96,7 +96,8 @@ def actual_register():
     # Registration is successful if a user with the same username doesn't exist yet.
     # ================================
 
-    success = None  # TODO: call
+    success = requests.post(f"http://login:5000/login/register?username={req_username}&password={req_password}").json()
+
     save_to_session('success', success)
 
     if success:
