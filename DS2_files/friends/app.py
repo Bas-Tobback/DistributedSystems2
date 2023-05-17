@@ -2,6 +2,7 @@ from flask import Flask
 from flask import request as flask_request
 from flask_restful import Resource, Api, reqparse
 import psycopg2
+import requests
 
 parser = reqparse.RequestParser()
 parser.add_argument('username')
@@ -22,24 +23,28 @@ while conn is None:
         print("Retrying DB connection")
 
 def add_friend(username, friend):
-    if friend not in all_friends(username):
+    # print("test 1", flush=True)
+    if (friend,) not in all_friends(username):
 
-        # TODO : REST API call to check if the user exists
-        existing = flask_request.get(f"http://login:5000/login/exists?username={username}")
+        existing = requests.get(f"http://login:5000/login/exists?username={friend}").json()
+        # print(existing, flush=True)
 
-        cur = conn.cursor()
-        cur.execute("INSERT INTO friends (username, friend) VALUES (%s, %s);", (username, friend))
-        conn.commit()
-        return True
+        if existing:
+            # print("test 3", flush=True)
+            cur = conn.cursor()
+            cur.execute("INSERT INTO friends (username, friend) VALUES (%s, %s);", (username, friend))
+            conn.commit()
+            return True
     return False
+
 
 def all_friends(username):
     cur = conn.cursor()
-    cur.execute(f"SELECT friend FROM friends WHERE username = {username};")
+    cur.execute(f"SELECT friend FROM friends WHERE username = %s;", (username,))
     return cur.fetchall()
 
 class Add(Resource):
-    def put(self):
+    def post(self):
         args = flask_request.args
         return add_friend(args['username'], args['friend'])
 

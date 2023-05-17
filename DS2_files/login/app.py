@@ -39,7 +39,7 @@ check if the username is present in the registered users
 """
 def login_exists(username):
     cur = conn.cursor()
-    cur.execute("SELECT COUNT(*) FROM login WHERE username = %s;", username)
+    cur.execute("SELECT COUNT(*) FROM login WHERE username = %s;", (username,))
     return bool(cur.fetchone()[0])  # Either True or False
 
 """ 
@@ -49,7 +49,7 @@ register a new user
 :return: boolean that indicates if the username-password combination is registered
 """
 def register(username, password):
-    if not login_exists(username, password):
+    if not login_exists(username):
         cur = conn.cursor()
         cur.execute("INSERT INTO login (username, password) VALUES (%s, %s);", (username, password))
         conn.commit()

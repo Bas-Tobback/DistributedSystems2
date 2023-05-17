@@ -44,6 +44,15 @@ services:
     volumes:
       - ./playlist_persistence/:/docker-entrypoint-initdb.d
 
+  share_persistence:
+    image: docker.io/postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./share_persistence/:/docker-entrypoint-initdb.d
+
   login:
     build: ./login
     ports:
@@ -64,6 +73,13 @@ services:
       - 5004:5000
     depends_on:
       - playlist_persistence
+
+  share:
+    build: ./share
+    ports:
+      - 5005:5000
+    depends_on:
+      - share_persistence
 
   songs:
     build: ./songs

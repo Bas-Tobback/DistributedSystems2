@@ -121,12 +121,12 @@ def friends():
     # Get a list of friends for the currently logged-in user
     # ================================
 
-    if username is not None:
+    if username is None:
         friend_list = []
     else:
-        friend_list = []  # TODO: call
+        friend_list = requests.get(f"http://friends:5000/friends/friends?username={username}").json()
 
-    return render_template('friends.html', username=username, password=password, success=success, friend_list=friend_list)
+    return render_template('friends.html', username=username, password=password, success=success, friend_list=[friend[0] for friend in friend_list])
 
 
 @app.route("/add_friend", methods=['POST'])
@@ -142,7 +142,7 @@ def add_friend():
     global username
     req_username = request.form['username']
 
-    success = None  # TODO: call
+    success = requests.post(f"http://friends:5000/friends/add?username={username}&friend={req_username}").json()
     save_to_session('success', success)
 
     return redirect('/friends')
@@ -162,8 +162,8 @@ def playlists():
         # Get all playlists you created and all playlist that are shared with you. (list of id, title pairs)
         # ================================
 
-        my_playlists = []  # TODO: call
-        shared_with_me = []  # TODO: call
+        my_playlists = requests.get(f"http://playlist:5000/playlist/all?username={username}").json()
+        shared_with_me = requests.get(f"http://share:5000/share/shared_with?username={username}").json()
 
     return render_template('playlists.html', username=username, password=password, my_playlists=my_playlists, shared_with_me=shared_with_me)
 
@@ -178,7 +178,7 @@ def create_playlist():
     global username
     title = request.form['title']
 
-    # TODO: call
+    requests.post(f"http://playlist:5000/playlist/create?username={username}&playlist={title}").json()
 
     return redirect('/playlists')
 
@@ -190,7 +190,8 @@ def a_playlist(playlist_id):
     #
     # List all songs within a playlist
     # ================================
-    songs = [] # TODO: call
+    songs = requests.get(f"http://playlist:5000/playlist/view?playlist_id={playlist_id}").json()
+
     return render_template('a_playlist.html', username=username, password=password, songs=songs, playlist_id=playlist_id)
 
 
@@ -203,7 +204,7 @@ def add_song_to_playlist(playlist_id):
     # ================================
     title, artist = request.form['title'], request.form['artist']
 
-    # TODO: call
+    requests.post(f"http://playlist:5000/playlist/add?playlist_id={playlist_id}&artist={artist}&title={title}").json()
     return redirect(f'/playlists/{playlist_id}')
 
 
@@ -216,7 +217,7 @@ def invite_user_to_playlist(playlist_id):
     # ================================
     recipient = request.form['user']
 
-    # TODO: call
+    requests.post(f"http://share:5000/share/share?playlist_id={playlist_id}&username={recipient}")
     return redirect(f'/playlists/{playlist_id}')
 
 

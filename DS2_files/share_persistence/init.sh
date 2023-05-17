@@ -7,9 +7,8 @@ EOSQL
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "share" <<-EOSQL
     CREATE TABLE share(
+        playlist_id TEXT NOT NULL,
         username TEXT NOT NULL,
-        friend TEXT NOT NULL,
-        playlist TEXT NOT NULL,
-        PRIMARY KEY (username, friend, playlist)
+        PRIMARY KEY (playlist_id, username)
     );
 EOSQL
