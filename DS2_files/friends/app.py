@@ -26,7 +26,13 @@ def add_friend(username, friend):
     # print("test 1", flush=True)
     if (friend,) not in all_friends(username):
 
-        existing = requests.get(f"http://login:5000/login/exists?username={friend}").json()
+        existing = False
+
+        # we need to be sure that if the other microservice is not up, we can still continue with our application
+        try:
+            existing = requests.get(f"http://login:5000/login/exists?username={friend}").json()
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            pass
         # print(existing, flush=True)
 
         if existing:
@@ -34,6 +40,14 @@ def add_friend(username, friend):
             cur = conn.cursor()
             cur.execute("INSERT INTO friends (username, friend) VALUES (%s, %s);", (username, friend))
             conn.commit()
+
+            # we made a friend, we want to send this to the feed to remember this awesome moment forever
+            try:
+                activity = f"You have made a new friend: '{friend}'"
+                requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                pass
+
             return True
     return False
 

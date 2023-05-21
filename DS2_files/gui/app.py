@@ -32,7 +32,7 @@ def feed():
     N = 10
 
     if username is not None:
-        feed = []  # TODO: call
+        feed = requests.get(f"http://feed:5000/feed/get?username={username}&amount={N}").json()["data"]
     else:
         feed = []
 
@@ -204,7 +204,7 @@ def add_song_to_playlist(playlist_id):
     # ================================
     title, artist = request.form['title'], request.form['artist']
 
-    requests.post(f"http://playlist:5000/playlist/add?playlist_id={playlist_id}&artist={artist}&title={title}").json()
+    requests.post(f"http://playlist:5000/playlist/add?username={username}&playlist_id={playlist_id}&artist={artist}&title={title}").json()
     return redirect(f'/playlists/{playlist_id}')
 
 
@@ -217,7 +217,7 @@ def invite_user_to_playlist(playlist_id):
     # ================================
     recipient = request.form['user']
 
-    requests.post(f"http://share:5000/share/share?playlist_id={playlist_id}&username={recipient}")
+    requests.post(f"http://share:5000/share/share?username={username}&playlist_id={playlist_id}&friend={recipient}")
     return redirect(f'/playlists/{playlist_id}')
 
 

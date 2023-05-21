@@ -47,16 +47,38 @@ def make_playlist(username, playlist):
         cur = conn.cursor()
         cur.execute("INSERT INTO playlist (username, playlist) VALUES (%s, %s);", (username, playlist))
         conn.commit()
+
+        try:
+            activity = f"You have created a new playlist: '{playlist}'"
+            requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            pass
+
         return True
     return False
 
-def add_to_playlist(playlist_id, artist, title):
-        # check if the songs exists
-    existing = requests.get(f"http://songs:5000/songs/exist?title={title}&artist={artist}")
+def add_to_playlist(username, playlist_id, artist, title):
+    # check if the songs exists
+    existing = False
+    try:
+        existing = requests.get(f"http://songs:5000/songs/exist?title={title}&artist={artist}")
+    except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+        print("Songs cannot be reached", flush=True)
+        pass
+
     if existing:
         cur = conn.cursor()
         cur.execute("INSERT INTO playlist_songs (playlist_id, artist, title) VALUES (%s, %s, %s);", (playlist_id, artist, title))
         conn.commit()
+
+        try:
+            playlist_title = get_id_title(playlist_id)[0][1]
+
+            activity = f"You added the song '{title}' by '{artist}' to playlist '{playlist_title}'"
+            requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            pass
+
         return True
     return False
 
@@ -89,7 +111,7 @@ class Create(Resource):
 class Add(Resource):
     def post(self):
         args = flask_request.args
-        return add_to_playlist(args['playlist_id'], args['artist'], args['title'])
+        return add_to_playlist(args['username'], args['playlist_id'], args['artist'], args['title'])
 
 class ViewPlaylist(Resource):
     def get(self):
