@@ -32,12 +32,21 @@ def add_activity(username, activity):
     return True
 
 def get_feed(username, amount):
-    cur = conn.cursor()
-    cur.execute(f"SELECT username, activity, activity_time FROM feed WHERE username = %s ORDER BY activity_time DESC LIMIT %s;", (username, amount))
-    temp = cur.fetchall()
-    # return make_response(jsonify({"message" : "ok", "feed": temp}), 200)
-    temp_dict = jsonify({"data" : temp})
-    return temp_dict
+    try:
+        response = [x[0] for x in requests.get(f"http://friends:5000/friends/friends?username={username}").json()]
+
+        cur = conn.cursor()
+        cur.execute(f"SELECT username, activity, activity_time FROM feed WHERE username IN %s ORDER BY activity_time DESC LIMIT %s;", (tuple(response), amount))
+        temp = cur.fetchall()
+        # return make_response(jsonify({"message" : "ok", "feed": temp}), 200)
+        temp_dict = jsonify({"data" : temp})
+        return temp_dict
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        temp = dict()
+        temp_dict = jsonify({"data" : temp})
+        print("It failed", flush=True)
+        return temp_dict
+
 class AddToFeed(Resource):
     def post(self):
         args = flask_request.args

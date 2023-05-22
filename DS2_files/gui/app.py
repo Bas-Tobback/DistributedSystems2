@@ -32,7 +32,10 @@ def feed():
     N = 10
 
     if username is not None:
-        feed = requests.get(f"http://feed:5000/feed/get?username={username}&amount={N}").json()["data"]
+        try:
+            feed = requests.get(f"http://feed:5000/feed/get?username={username}&amount={N}").json()["data"]
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            feed = []
     else:
         feed = []
 
@@ -41,7 +44,10 @@ def feed():
 
 @app.route("/catalogue")
 def catalogue():
-    songs = requests.get("http://songs:5000/songs").json()
+    try:
+        songs = requests.get("http://songs:5000/songs").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        songs = []
 
     return render_template('catalogue.html', username=username, password=password, songs=songs)
 
@@ -64,7 +70,10 @@ def actual_login():
     # microservice returns True if correct combination, False if otherwise.
     # Also pay attention to the status code returned by the microservice.
     # ================================
-    success = requests.get(f"http://login:5000/login/login?username={req_username}&password={req_password}").json()
+    try:
+        success = requests.get(f"http://login:5000/login/login?username={req_username}&password={req_password}").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        success = False
 
     save_to_session('success', success)
     if success:
@@ -95,8 +104,10 @@ def actual_register():
     #
     # Registration is successful if a user with the same username doesn't exist yet.
     # ================================
-
-    success = requests.post(f"http://login:5000/login/register?username={req_username}&password={req_password}").json()
+    try:
+        success = requests.post(f"http://login:5000/login/register?username={req_username}&password={req_password}").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        success = False
 
     save_to_session('success', success)
 
@@ -124,7 +135,10 @@ def friends():
     if username is None:
         friend_list = []
     else:
-        friend_list = requests.get(f"http://friends:5000/friends/friends?username={username}").json()
+        try:
+            friend_list = requests.get(f"http://friends:5000/friends/friends?username={username}").json()
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            friend_list = []
 
     return render_template('friends.html', username=username, password=password, success=success, friend_list=[friend[0] for friend in friend_list])
 
@@ -142,7 +156,11 @@ def add_friend():
     global username
     req_username = request.form['username']
 
-    success = requests.post(f"http://friends:5000/friends/add?username={username}&friend={req_username}").json()
+    try:
+        success = requests.post(f"http://friends:5000/friends/add?username={username}&friend={req_username}").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        success = False
+
     save_to_session('success', success)
 
     return redirect('/friends')
@@ -162,8 +180,15 @@ def playlists():
         # Get all playlists you created and all playlist that are shared with you. (list of id, title pairs)
         # ================================
 
-        my_playlists = requests.get(f"http://playlist:5000/playlist/all?username={username}").json()
-        shared_with_me = requests.get(f"http://share:5000/share/shared_with?username={username}").json()
+        try:
+            my_playlists = requests.get(f"http://playlist:5000/playlist/all?username={username}").json()
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            my_playlists = []
+
+        try:
+            shared_with_me = requests.get(f"http://share:5000/share/shared_with?username={username}").json()
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            shared_with_me = []
 
     return render_template('playlists.html', username=username, password=password, my_playlists=my_playlists, shared_with_me=shared_with_me)
 
@@ -178,7 +203,10 @@ def create_playlist():
     global username
     title = request.form['title']
 
-    requests.post(f"http://playlist:5000/playlist/create?username={username}&playlist={title}").json()
+    try:
+        requests.post(f"http://playlist:5000/playlist/create?username={username}&playlist={title}").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        pass
 
     return redirect('/playlists')
 
@@ -190,7 +218,10 @@ def a_playlist(playlist_id):
     #
     # List all songs within a playlist
     # ================================
-    songs = requests.get(f"http://playlist:5000/playlist/view?playlist_id={playlist_id}").json()
+    try:
+        songs = requests.get(f"http://playlist:5000/playlist/view?playlist_id={playlist_id}").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        songs = []
 
     return render_template('a_playlist.html', username=username, password=password, songs=songs, playlist_id=playlist_id)
 
@@ -204,7 +235,10 @@ def add_song_to_playlist(playlist_id):
     # ================================
     title, artist = request.form['title'], request.form['artist']
 
-    requests.post(f"http://playlist:5000/playlist/add?username={username}&playlist_id={playlist_id}&artist={artist}&title={title}").json()
+    try:
+        requests.post(f"http://playlist:5000/playlist/add?username={username}&playlist_id={playlist_id}&artist={artist}&title={title}").json()
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        pass
     return redirect(f'/playlists/{playlist_id}')
 
 
@@ -217,7 +251,10 @@ def invite_user_to_playlist(playlist_id):
     # ================================
     recipient = request.form['user']
 
-    requests.post(f"http://share:5000/share/share?username={username}&playlist_id={playlist_id}&friend={recipient}")
+    try:
+        requests.post(f"http://share:5000/share/share?username={username}&playlist_id={playlist_id}&friend={recipient}")
+    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+        pass
     return redirect(f'/playlists/{playlist_id}')
 
 

@@ -40,9 +40,9 @@ def share_playlist(username, playlist_id, friend):
         pass
 
     if existing:
-        if not already_shared(playlist_id, username):
+        if not already_shared(playlist_id, friend):
             cur = conn.cursor()
-            cur.execute("INSERT INTO share (playlist_id, username) VALUES (%s, %s);", (playlist_id, username))
+            cur.execute("INSERT INTO share (playlist_id, username) VALUES (%s, %s);", (playlist_id, friend))
             conn.commit()
 
             try:

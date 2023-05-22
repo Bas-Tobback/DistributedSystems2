@@ -1,6 +1,11 @@
 version: "3.9"
 volumes:
   songs_data:  # Create a volume core_data that will contain the data for 'songs_persistence', such that when the container is stopped / crashes, the data remains.
+  login_data:
+  friends_data:
+  playlist_data:
+  share_data:
+  feed_data:
 services:
 
   songs_persistence:
@@ -28,7 +33,9 @@ services:
       # Map the login_persistence folder to the docker-entrypoint-initdb.d folder in the container.
       # This will ensure that the necessary files are present in the container for initializing the database(s)
       - ./login_persistence/:/docker-entrypoint-initdb.d
-#    networks:
+      - login_data:/var/lib/postgresql/data
+
+  #    networks:
 #      - login_net
 
   friends_persistence:
@@ -39,6 +46,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./friends_persistence/:/docker-entrypoint-initdb.d
+      - friends_data:/var/lib/postgresql/data
 #    networks:
 #      - friend_net
 
@@ -50,6 +58,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./playlist_persistence/:/docker-entrypoint-initdb.d
+      - playlist_data:/var/lib/postgresql/data
 #    networks:
 #      - playlist_net
 
@@ -61,6 +70,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./share_persistence/:/docker-entrypoint-initdb.d
+      - share_data:/var/lib/postgresql/data
 #    networks:
 #      - share_net
 
@@ -72,6 +82,7 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./feed_persistence/:/docker-entrypoint-initdb.d
+      - feed_data:/var/lib/postgresql/data
 #    networks:
 #      - feed_net
 

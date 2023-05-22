@@ -43,7 +43,7 @@ def add_friend(username, friend):
 
             # we made a friend, we want to send this to the feed to remember this awesome moment forever
             try:
-                activity = f"You have made a new friend: '{friend}'"
+                activity = f"{username} has made a new friend: '{friend}'"
                 requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
                 pass
