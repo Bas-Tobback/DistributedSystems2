@@ -15,8 +15,8 @@ services:
       - ./songs_persistence/:/docker-entrypoint-initdb.d
       # Map the psql data from the container to a virtual volume, thus preserving the data after the container is stopped.
       - songs_data:/var/lib/postgresql/data
-    networks:
-      - songs_net
+#    networks:
+#      - songs_net
 
   login_persistence:
     image: docker.io/postgres
@@ -28,8 +28,8 @@ services:
       # Map the login_persistence folder to the docker-entrypoint-initdb.d folder in the container.
       # This will ensure that the necessary files are present in the container for initializing the database(s)
       - ./login_persistence/:/docker-entrypoint-initdb.d
-    networks:
-      - login_net
+#    networks:
+#      - login_net
 
   friends_persistence:
     image: docker.io/postgres
@@ -39,8 +39,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./friends_persistence/:/docker-entrypoint-initdb.d
-    networks:
-      - friend_net
+#    networks:
+#      - friend_net
 
   playlist_persistence:
     image: docker.io/postgres
@@ -50,8 +50,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./playlist_persistence/:/docker-entrypoint-initdb.d
-    networks:
-      - playlist_net
+#    networks:
+#      - playlist_net
 
   share_persistence:
     image: docker.io/postgres
@@ -61,8 +61,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./share_persistence/:/docker-entrypoint-initdb.d
-    networks:
-      - share_net
+#    networks:
+#      - share_net
 
   feed_persistence:
     image: docker.io/postgres
@@ -72,8 +72,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./feed_persistence/:/docker-entrypoint-initdb.d
-    networks:
-      - feed_net
+#    networks:
+#      - feed_net
 
   songs:
     build: ./songs
@@ -81,8 +81,9 @@ services:
       - 5001:5000
     depends_on:
       - songs_persistence
-    networks:
-      - songs_net
+#    networks:
+#      - songs_net
+#      - general
 
   login:
     build: ./login
@@ -90,8 +91,9 @@ services:
       - 5002:5000
     depends_on:
       - login_persistence
-    networks:
-      - login_net
+#    networks:
+#      - login_net
+#      - general
 
   friends:
     build: ./friends
@@ -99,9 +101,9 @@ services:
       - 5003:5000
     depends_on:
       - friends_persistence
-    networks:
-      - login_net
-      - friend_net
+#    networks:
+#      - general
+#      - friend_net
 
   playlist:
     build: ./playlist
@@ -109,10 +111,9 @@ services:
       - 5004:5000
     depends_on:
       - playlist_persistence
-    networks:
-      - songs_net
-      - login_net
-      - playlist_net
+#    networks:
+#      - general
+#      - playlist_net
 
   share:
     build: ./share
@@ -120,10 +121,9 @@ services:
       - 5005:5000
     depends_on:
       - share_persistence
-    networks:
-      - share_net
-      - playlist_net
-      - friend_net
+#    networks:
+#      - share_net
+#      - general
 
   feed:
     build: ./feed
@@ -131,26 +131,10 @@ services:
       - 5006:5000
     depends_on:
       - feed_persistence
-    networks:
-      - feed_net
-      - share_net
+
 
   gui:
     build: ./gui
     ports:
       - 5000:5000
-    networks:
-      - feed_net
-      - login_net
-      - songs_net
-      - share_net
-      - playlist_net
-      - friend_net
 
-networks:
-  songs_net:
-  login_net:
-  share_net:
-  feed_net:
-  playlist_net:
-  friend_net:
