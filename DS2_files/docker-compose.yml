@@ -2,6 +2,7 @@ version: "3.9"
 volumes:
   songs_data:  # Create a volume core_data that will contain the data for 'songs_persistence', such that when the container is stopped / crashes, the data remains.
 services:
+
   songs_persistence:
     image: docker.io/postgres
     restart: always
@@ -14,6 +15,8 @@ services:
       - ./songs_persistence/:/docker-entrypoint-initdb.d
       # Map the psql data from the container to a virtual volume, thus preserving the data after the container is stopped.
       - songs_data:/var/lib/postgresql/data
+    networks:
+      - songs_net
 
   login_persistence:
     image: docker.io/postgres
@@ -25,6 +28,8 @@ services:
       # Map the login_persistence folder to the docker-entrypoint-initdb.d folder in the container.
       # This will ensure that the necessary files are present in the container for initializing the database(s)
       - ./login_persistence/:/docker-entrypoint-initdb.d
+    networks:
+      - login_net
 
   friends_persistence:
     image: docker.io/postgres
@@ -34,6 +39,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./friends_persistence/:/docker-entrypoint-initdb.d
+    networks:
+      - friend_net
 
   playlist_persistence:
     image: docker.io/postgres
@@ -43,6 +50,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./playlist_persistence/:/docker-entrypoint-initdb.d
+    networks:
+      - playlist_net
 
   share_persistence:
     image: docker.io/postgres
@@ -52,6 +61,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./share_persistence/:/docker-entrypoint-initdb.d
+    networks:
+      - share_net
 
   feed_persistence:
     image: docker.io/postgres
@@ -61,41 +72,8 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - ./feed_persistence/:/docker-entrypoint-initdb.d
-
-  login:
-    build: ./login
-    ports:
-      - 5002:5000
-    depends_on:
-      - login_persistence
-
-  friends:
-    build: ./friends
-    ports:
-      - 5003:5000
-    depends_on:
-      - friends_persistence
-
-  playlist:
-    build: ./playlist
-    ports:
-      - 5004:5000
-    depends_on:
-      - playlist_persistence
-
-  share:
-    build: ./share
-    ports:
-      - 5005:5000
-    depends_on:
-      - share_persistence
-
-  feed:
-    build: ./feed
-    ports:
-      - 5006:5000
-    depends_on:
-      - feed_persistence
+    networks:
+      - feed_net
 
   songs:
     build: ./songs
@@ -103,9 +81,76 @@ services:
       - 5001:5000
     depends_on:
       - songs_persistence
+    networks:
+      - songs_net
+
+  login:
+    build: ./login
+    ports:
+      - 5002:5000
+    depends_on:
+      - login_persistence
+    networks:
+      - login_net
+
+  friends:
+    build: ./friends
+    ports:
+      - 5003:5000
+    depends_on:
+      - friends_persistence
+    networks:
+      - login_net
+      - friend_net
+
+  playlist:
+    build: ./playlist
+    ports:
+      - 5004:5000
+    depends_on:
+      - playlist_persistence
+    networks:
+      - songs_net
+      - login_net
+      - playlist_net
+
+  share:
+    build: ./share
+    ports:
+      - 5005:5000
+    depends_on:
+      - share_persistence
+    networks:
+      - share_net
+      - playlist_net
+      - friend_net
+
+  feed:
+    build: ./feed
+    ports:
+      - 5006:5000
+    depends_on:
+      - feed_persistence
+    networks:
+      - feed_net
+      - share_net
 
   gui:
     build: ./gui
     ports:
       - 5000:5000
+    networks:
+      - feed_net
+      - login_net
+      - songs_net
+      - share_net
+      - playlist_net
+      - friend_net
 
+networks:
+  songs_net:
+  login_net:
+  share_net:
+  feed_net:
+  playlist_net:
+  friend_net:

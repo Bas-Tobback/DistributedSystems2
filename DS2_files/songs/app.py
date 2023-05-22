@@ -16,10 +16,12 @@ while conn is None:
     try:
         conn = psycopg2.connect(dbname="songs", user="postgres", password="postgres", host="songs_persistence")
         print("DB connection successful")
-    except psycopg2.OperationalError:
+    except psycopg2.OperationalError as e:
         import time
         time.sleep(1)
-        print("Retrying DB connection")
+        print("Retrying DB connection", flush=True)
+        print(e, flush=True)
+        print("test", flush=True)
 
 
 def all_songs(limit=1000):
