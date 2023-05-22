@@ -46,7 +46,7 @@ def share_playlist(username, playlist_id, friend):
             conn.commit()
 
             try:
-                activity = f"You shared the playlist '{playlist_title}' with '{friend}'"
+                activity = f"{username} shared the playlist '{playlist_title}' with '{friend}'"
                 requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
             except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
                 pass

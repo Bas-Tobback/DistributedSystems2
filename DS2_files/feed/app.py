@@ -29,18 +29,24 @@ def add_activity(username, activity):
     cur = conn.cursor()
     time = datetime.datetime.now()
     cur.execute(f"INSERT INTO feed (username, activity, activity_time) values (%s, %s, %s);", (username, activity, time))
+    conn.commit()
     return True
 
 def get_feed(username, amount):
     try:
         response = [x[0] for x in requests.get(f"http://friends:5000/friends/friends?username={username}").json()]
 
-        cur = conn.cursor()
-        cur.execute(f"SELECT username, activity, activity_time FROM feed WHERE username IN %s ORDER BY activity_time DESC LIMIT %s;", (tuple(response), amount))
-        temp = cur.fetchall()
-        # return make_response(jsonify({"message" : "ok", "feed": temp}), 200)
-        temp_dict = jsonify({"data" : temp})
-        return temp_dict
+        if len(response) != 0:
+            cur = conn.cursor()
+            cur.execute(f"SELECT activity_time, username, activity FROM feed WHERE username IN %s ORDER BY activity_time DESC LIMIT %s;", (tuple(response), amount))
+            temp = cur.fetchall()
+            # return make_response(jsonify({"message" : "ok", "feed": temp}), 200)
+            temp_dict = jsonify({"data" : temp})
+            return temp_dict
+        else:
+            temp = dict()
+            temp_dict = jsonify({"data": temp})
+            return temp_dict
     except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
         temp = dict()
         temp_dict = jsonify({"data" : temp})

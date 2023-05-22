@@ -49,7 +49,7 @@ def make_playlist(username, playlist):
         conn.commit()
 
         try:
-            activity = f"You have created a new playlist: '{playlist}'"
+            activity = f"{username} created a new playlist: '{playlist}'"
             requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             pass
@@ -74,7 +74,7 @@ def add_to_playlist(username, playlist_id, artist, title):
         try:
             playlist_title = get_id_title(playlist_id)[0][1]
 
-            activity = f"You added the song '{title}' by '{artist}' to playlist '{playlist_title}'"
+            activity = f"{username} added the song '{title}' by '{artist}' to playlist '{playlist_title}'"
             requests.post(f"http://feed:5000/feed/add?username={username}&activity={activity}")
         except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             pass
